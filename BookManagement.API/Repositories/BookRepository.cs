@@ -14,6 +14,7 @@ namespace BookManagement.API.Repositories
             _context = context;
         }
 
+        // Methods for business logic
         public async Task<IEnumerable<InventoryAnalytics>> GetInventoryAnalyticsAsync(
             int? categoryId, DateTime? startDate, DateTime? endDate)
         {
@@ -60,6 +61,82 @@ namespace BookManagement.API.Repositories
                 "sp_ProcessBookTransaction",
                 parameters,
                 commandType: CommandType.StoredProcedure);
+        }
+
+        // CRUD operations
+        public async Task<Book> GetBookByIdAsync(int id)
+        {
+            using var connection = _context.CreateConnection();
+            var parameters = new DynamicParameters();
+            parameters.Add("@BookId", id);
+
+            var book = await connection.QuerySingleOrDefaultAsync<Book>(
+                "sp_GetBookById",
+                parameters,
+                commandType: CommandType.StoredProcedure);
+
+            if (book == null)
+                throw new KeyNotFoundException($"Book with ID {id} not found");
+
+            return book;
+        }
+
+        public async Task<int> CreateBookAsync(Book book)
+        {
+            using var connection = _context.CreateConnection();
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@Title", book.Title);
+            parameters.Add("@ISBN", book.ISBN);
+            parameters.Add("@CategoryId", book.CategoryId);
+            parameters.Add("@Author", book.Author);
+            parameters.Add("@PublicationYear", book.PublicationYear);
+            parameters.Add("@Price", book.Price);
+            parameters.Add("@StockQuantity", book.StockQuantity);
+            parameters.Add("@BookId", dbType: DbType.Int32, direction: ParameterDirection.Output);
+
+            await connection.ExecuteAsync(
+                "sp_CreateBook",
+                parameters,
+                commandType: CommandType.StoredProcedure);
+
+            return parameters.Get<int>("@BookId");
+        }
+
+        public async Task<bool> UpdateBookAsync(int id, Book book)
+        {
+            using var connection = _context.CreateConnection();
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@BookId", id);
+            parameters.Add("@Title", book.Title);
+            parameters.Add("@ISBN", book.ISBN);
+            parameters.Add("@CategoryId", book.CategoryId);
+            parameters.Add("@Author", book.Author);
+            parameters.Add("@PublicationYear", book.PublicationYear);
+            parameters.Add("@Price", book.Price);
+            parameters.Add("@StockQuantity", book.StockQuantity);
+
+            await connection.ExecuteAsync(
+                "sp_UpdateBook",
+                parameters,
+                commandType: CommandType.StoredProcedure);
+
+            return true;
+        }
+
+        public async Task<bool> DeleteBookAsync(int id)
+        {
+            using var connection = _context.CreateConnection();
+            var parameters = new DynamicParameters();
+            parameters.Add("@BookId", id);
+
+            await connection.ExecuteAsync(
+                "sp_DeleteBook",
+                parameters,
+                commandType: CommandType.StoredProcedure);
+
+            return true;
         }
     }
 }
