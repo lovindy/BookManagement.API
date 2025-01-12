@@ -91,5 +91,108 @@ namespace BookManagement.API.Controllers
                 return StatusCode(500, "An error occurred while processing your request.");
             }
         }
+
+        // CRUD operations
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Book>> GetBook(int id)
+        {
+            try
+            {
+                var book = await _bookRepository.GetBookByIdAsync(id);
+                return Ok(book);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving book");
+                return StatusCode(500, "An error occurred while retrieving the book");
+            }
+        }
+
+        [HttpPost]
+        public async Task<ActionResult<Book>> CreateBook([FromBody] BookRequest request)
+        {
+            try
+            {
+                var book = new Book
+                {
+                    Title = request.Title,
+                    ISBN = request.ISBN,
+                    CategoryId = request.CategoryId,
+                    Author = request.Author,
+                    PublicationYear = request.PublicationYear,
+                    Price = request.Price,
+                    StockQuantity = request.StockQuantity
+                };
+
+                var bookId = await _bookRepository.CreateBookAsync(book);
+                return CreatedAtAction(nameof(GetBook), new { id = bookId }, book);
+            }
+            catch (SqlException ex) when (ex.Number == 50001)
+            {
+                return BadRequest("ISBN already exists.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating book");
+                return StatusCode(500, "An error occurred while creating the book");
+            }
+        }
+
+        [HttpPut("{id}")]
+        public async Task<ActionResult> UpdateBook(int id, [FromBody] BookRequest request)
+        {
+            try
+            {
+                var book = new Book
+                {
+                    Title = request.Title,
+                    ISBN = request.ISBN,
+                    CategoryId = request.CategoryId,
+                    Author = request.Author,
+                    PublicationYear = request.PublicationYear,
+                    Price = request.Price,
+                    StockQuantity = request.StockQuantity
+                };
+
+                await _bookRepository.UpdateBookAsync(id, book);
+                return NoContent();
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound($"Book with ID {id} not found");
+            }
+            catch (SqlException ex) when (ex.Number == 50001)
+            {
+                return BadRequest("ISBN already exists.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating book");
+                return StatusCode(500, "An error occurred while updating the book");
+            }
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<ActionResult> DeleteBook(int id)
+        {
+            try
+            {
+                await _bookRepository.DeleteBookAsync(id);
+                return NoContent();
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound($"Book with ID {id} not found");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting book");
+                return StatusCode(500, "An error occurred while deleting the book");
+            }
+        }
     }
 }
