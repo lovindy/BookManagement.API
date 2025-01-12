@@ -64,6 +64,14 @@ namespace BookManagement.API.Repositories
         }
 
         // CRUD operations
+        public async Task<IEnumerable<Book>> GetAllBooksAsync()
+        {
+            using var connection = _context.CreateConnection();
+            return await connection.QueryAsync<Book>(
+                "sp_GetAllBooks",
+                commandType: CommandType.StoredProcedure);
+        }
+
         public async Task<Book> GetBookByIdAsync(int id)
         {
             using var connection = _context.CreateConnection();

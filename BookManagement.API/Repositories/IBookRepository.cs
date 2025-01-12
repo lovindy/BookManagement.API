@@ -5,6 +5,7 @@ namespace BookManagement.API.Repositories
     public interface IBookRepository
     {
         // CRUD operations
+        Task<IEnumerable<Book>> GetAllBooksAsync();
         Task<Book> GetBookByIdAsync(int id);
         Task<int> CreateBookAsync(Book book);
         Task<bool> UpdateBookAsync(int id, Book book);

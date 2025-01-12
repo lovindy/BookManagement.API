@@ -20,6 +20,7 @@ builder.Services.AddSwaggerGen(c =>
 // Add custom services
 builder.Services.AddSingleton<DatabaseContext>();
 builder.Services.AddScoped<IBookRepository, BookRepository>();
+builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 
 // Add logging
 builder.Services.AddLogging(logging =>

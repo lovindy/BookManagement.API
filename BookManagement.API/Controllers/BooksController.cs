@@ -93,6 +93,22 @@ namespace BookManagement.API.Controllers
         }
 
         // CRUD operations
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Book>>> GetBooks()
+        {
+            try
+            {
+                var books = await _bookRepository.GetAllBooksAsync();
+                return Ok(books);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving books");
+                return StatusCode(500, "An error occurred while retrieving the books");
+            }
+        }
+
+
         [HttpGet("{id}")]
         public async Task<ActionResult<Book>> GetBook(int id)
         {
